@@ -18,6 +18,8 @@
 
 #include <time.h>  
 #include "Boid.h"
+#include "Fish.h"
+#include "Predator.h"
 
 
 //--------------------------------------------------------------------------------------
@@ -73,14 +75,14 @@ int						g_viewHeight;
 vecBoid					g_Boids;
 
 
-#define FISH_COUNT 50
-#define PREDATOR_COUNT 0
+#define FISH_COUNT 200
+#define PREDATOR_COUNT 1
 #define START_SQUARE 150
 
 void placeFish()
 {
 	HRESULT hr;
-	Boid* fish = new Boid(false);
+	Boid* fish = new Fish();
 	hr = fish->initMesh(g_pd3dDevice, g_pImmediateContext);
 	if (FAILED(hr))
 		return;
@@ -96,7 +98,7 @@ void placeFish()
 void placePredator()
 {
 	HRESULT hr;
-	Boid* fish = new Boid(true);
+	Boid* fish = new Predator();
 	hr = fish->initMesh(g_pd3dDevice, g_pImmediateContext);
 	if (FAILED(hr))
 		return;

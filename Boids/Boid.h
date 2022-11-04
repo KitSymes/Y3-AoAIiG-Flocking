@@ -1,27 +1,28 @@
 #pragma once
 #include "DrawableGameObject.h"
+#include <string>
+
+#define NEARBY_DISTANCE		60.0f	// how far boids can see
 class Boid :
 	public DrawableGameObject
 {
 public:
-	Boid(bool isPredator);
+	Boid();
 	~Boid();
 
 	XMFLOAT3*							getDirection() { return &m_direction; }
 	void								checkIsOnScreenAndFix(const XMMATRIX&  view, const XMMATRIX&  proj);
-	void								update(float t, vecBoid* drawList);
-	bool								isPredator() { return m_predator; }
+	virtual void						update(float t, vecBoid* drawList);
 	void								kill();
 	bool								isDead() { return m_dead; }
 
 protected:
 	void								setDirection(XMFLOAT3 direction);
 
-	vecBoid								nearbyBoids(vecBoid* boidList);
+	virtual vecBoid						nearbyBoids(vecBoid* boidList);
 	XMFLOAT3							calculateSeparationVector(vecBoid* drawList);
 	XMFLOAT3							calculateAlignmentVector(vecBoid* drawList);
 	XMFLOAT3							calculateCohesionVector(vecBoid* drawList);
-	XMFLOAT3							calculateEscapeVector(vecBoid* drawList);
 	void								createRandomDirection();
 
 	XMFLOAT3							addFloat3(XMFLOAT3& f1, XMFLOAT3& f2);
@@ -33,7 +34,7 @@ protected:
 	XMFLOAT3							lerpFloat3(XMFLOAT3& f1, XMFLOAT3& f2, const float scalar);
 
 	XMFLOAT3							m_direction;
-	bool								m_predator, m_dead;
+	bool								m_dead;
 	float								m_speed, m_stamina, m_fov, m_range;
 	//unsigned int*						m_nearbyDrawables;
 };

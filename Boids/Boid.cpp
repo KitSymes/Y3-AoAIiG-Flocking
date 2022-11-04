@@ -1,39 +1,14 @@
 #include "Boid.h"
 
 
-#define NEARBY_DISTANCE		50.0f	// how far boids can see
 
-Boid::Boid(bool isPredator)
+Boid::Boid()
 {
 	m_position = XMFLOAT3(0, 0, 0);
 	//m_direction = XMFLOAT3(0, 1, 0);
 	createRandomDirection();
 	setScale(1);
-	m_predator = isPredator;
 	m_dead = false;
-
-	if (isPredator)
-	{
-		m_material.Material.Ambient = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-
-		m_speed = 1.15f;
-		m_stamina = 1.0f;
-		m_fov = 1.0f;
-		m_range = 1.0f;
-	}
-	else
-	{
-		m_material.Material.Ambient = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-		//m_material.Material.Specular = XMFLOAT4(1.0f, 0.2f, 0.2f, 1.0f);
-		//m_material.Material.SpecularPower = 32.0f;
-		//m_material.Material.UseTexture = false;
-
-		// Generate stat multipliers in range 0.9f - 1.1f
-		m_speed = 0.9f + (float)(rand() % 20) / 100.0f;
-		m_stamina = 0.9f + (float)(rand() % 20) / 100.0f;
-		m_fov = 0.9f + (float)(rand() % 20) / 100.0f;
-		m_range = 0.9f + (float)(rand() % 20) / 100.0f;
-	}
 }
 
 Boid::~Boid()
@@ -61,97 +36,6 @@ void Boid::setDirection(XMFLOAT3 direction)
 #define DIRECTION_DELTA 0.1f
 void Boid::update(float t, vecBoid* boidList)
 {
-	XMFLOAT3 vTotal = XMFLOAT3();
-
-	if (isPredator())
-	{
-		XMFLOAT3  vHunt = XMFLOAT3();
-
-		float nearestDistance = 9999.0f;
-		DrawableGameObject* nearest = nullptr;
-		XMFLOAT3 directionNearestStored;
-
-		for (Boid* boid : *boidList)
-		{
-			// ignore predators
-			if (boid == this || boid->isPredator())
-				continue;
-
-			// get the distance between the two
-			XMFLOAT3 vB = *(boid->getPosition());
-			XMFLOAT3 vDiff = subtractFloat3(vB, m_position);
-
-			// Accounting for screen wrapping
-			if (vDiff.x < -260)
-				vDiff.x += 520;
-			if (vDiff.y < -200)
-				vDiff.y += 400;
-			if (vDiff.x > 260)
-				vDiff.x -= 520;
-			if (vDiff.y > 200)
-				vDiff.y -= 400;
-			// -------------------------------
-
-			float d = magnitudeFloat3(vDiff);
-
-			if (d < nearestDistance)
-			{
-				if (d <= 1.0f)
-				{
-					boid->kill();
-					continue;
-				}
-
-				nearestDistance = d;
-				nearest = boid;
-				directionNearestStored = vDiff;
-			}
-		}
-
-		if (nearest != nullptr) {
-			vHunt = normaliseFloat3(directionNearestStored);
-		}
-
-		vTotal = vHunt;
-		//vTotal = lerpFloat3(m_direction, vTotal, t);
-
-		if (isnan(vTotal.x))
-			m_position = m_position;
-
-		if (vTotal.x != 0.0f && vTotal.y != 0.0f)
-			setDirection(vTotal);
-	}
-	else
-	{
-		// create a list of nearby boids
-		vecBoid nearBoids = nearbyBoids(boidList);
-
-		XMFLOAT3  vSeparation = calculateSeparationVector(&nearBoids);
-		XMFLOAT3  vAlignment = calculateAlignmentVector(&nearBoids);
-		XMFLOAT3  vCohesion = calculateCohesionVector(&nearBoids);
-		XMFLOAT3  vEscape = calculateEscapeVector(boidList);
-
-		if (vEscape.x != 0.0f || vEscape.y != 0.0f)
-			vTotal = vEscape;
-		else
-		{
-			vTotal = addFloat3(vSeparation, vAlignment);
-			vTotal = addFloat3(vTotal, vCohesion);
-		}
-		vTotal = normaliseFloat3(vTotal);
-		vTotal = lerpFloat3(m_direction, vTotal, t);
-
-		if (isnan(vTotal.x))
-			m_position = m_position;
-
-		if (vTotal.x != 0.0f && vTotal.y != 0.0f)
-			setDirection(vTotal);
-	}
-
-	XMFLOAT3 move = multiplyFloat3(m_direction, m_speed);
-	m_position = addFloat3(m_position, move);
-
-	DrawableGameObject::update(t);
 }
 
 void Boid::kill()
@@ -206,13 +90,14 @@ XMFLOAT3 Boid::calculateAlignmentVector(vecBoid* boidList)
 	if (boidList == nullptr || boidList->size() <= 0)
 		return nearby;
 
-	// your code here
 	for (Boid* boid : *boidList)
 		nearby = addFloat3(nearby, *boid->getDirection());
 
 	nearby = divideFloat3(nearby, (float)boidList->size());
+	nearby = normaliseFloat3(nearby);
+	nearby = multiplyFloat3(nearby, 4.0f);
 
-	return normaliseFloat3(nearby); // return the normalised (average) direction of nearby drawables
+	return nearby;
 }
 
 XMFLOAT3 Boid::calculateCohesionVector(vecBoid* boidList)
@@ -222,41 +107,19 @@ XMFLOAT3 Boid::calculateCohesionVector(vecBoid* boidList)
 	if (boidList == nullptr || boidList->size() <= 0)
 		return nearby;
 
-	// calculate average position of nearby
 	for (Boid* boid : *boidList)
 		nearby = addFloat3(nearby, *boid->getPosition());
 
 	nearby = divideFloat3(nearby, (float)boidList->size());
 	nearby = subtractFloat3(nearby, m_position);
 
-	if (magnitudeFloat3(nearby) > NEARBY_DISTANCE * m_range / 2.0f)
+	if (magnitudeFloat3(nearby) > NEARBY_DISTANCE * m_range / 3.0f)
 	{
 		nearby = normaliseFloat3(nearby);
 		return multiplyFloat3(nearby, 2.0f);
 	}
 
-	return normaliseFloat3(nearby); // nearby is the direction to where the other drawables are
-}
-
-XMFLOAT3 Boid::calculateEscapeVector(vecBoid* boidList)
-{
-	XMFLOAT3 escape = XMFLOAT3(0, 0, 0);
-
-	if (boidList == nullptr || boidList->size() <= 0)
-		return escape;
-
-	for (Boid* boid : *boidList)
-		if (boid->isPredator())
-		{
-			XMFLOAT3 vDiff = subtractFloat3(m_position, *boid->getPosition());
-			float dist = magnitudeFloat3(vDiff);
-			if (dist < NEARBY_DISTANCE * m_range) {
-				XMFLOAT3 direction = subtractFloat3(m_position, *boid->getPosition());
-				escape = addFloat3(escape, direction);
-			}
-		}
-
-	return normaliseFloat3(escape); // escape is the direction away from all predators
+	return normaliseFloat3(nearby);
 }
 
 
@@ -335,44 +198,7 @@ XMFLOAT3 Boid::normaliseFloat3(XMFLOAT3& f1)
 
 vecBoid Boid::nearbyBoids(vecBoid* boidList)
 {
-	vecBoid nearBoids;
-	if (boidList->size() == 0)
-		return nearBoids;
-
-	XMFLOAT3 dirNormal = normaliseFloat3(m_direction);
-
-	for (Boid* boid : *boidList) {
-		// ignore self
-		if (boid == this || boid->isPredator())
-			continue;
-
-		// get the distance between the two
-		XMFLOAT3 vB = *(boid->getPosition());
-		XMFLOAT3 vDiff = subtractFloat3(m_position, vB);
-
-		// Accounting for screen wrapping
-		if (vDiff.x < -260)
-			vDiff.x += 520;
-		if (vDiff.y < -200)
-			vDiff.y += 400;
-		if (vDiff.x > 260)
-			vDiff.x -= 520;
-		if (vDiff.y > 200)
-			vDiff.y -= 400;
-		// -------------------------------
-
-		float l = magnitudeFloat3(vDiff);
-		XMFLOAT3 vDiffNormal = normaliseFloat3(vDiff);
-
-
-		if (l < NEARBY_DISTANCE * m_range) {
-			float dot = vDiffNormal.x * dirNormal.x + vDiffNormal.y * dirNormal.y + vDiffNormal.z * dirNormal.z;
-			if (dot > -0.5f - (m_fov - 1.0f))
-				nearBoids.push_back(boid);
-		}
-	}
-
-	return nearBoids;
+	return *boidList;
 }
 
 

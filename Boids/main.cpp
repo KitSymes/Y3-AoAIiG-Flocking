@@ -73,7 +73,8 @@ int						g_viewHeight;
 vecBoid					g_Boids;
 
 
-#define FISH_COUNT 200
+#define FISH_COUNT 50
+#define PREDATOR_COUNT 0
 #define START_SQUARE 150
 
 void placeFish()
@@ -520,7 +521,8 @@ HRESULT		InitMesh()
     for (int i = 0; i < FISH_COUNT; i++)
 	    placeFish();
 
-    placePredator();
+    for (int i = 0; i < PREDATOR_COUNT; i++)
+        placePredator();
 
 	return hr;
 }

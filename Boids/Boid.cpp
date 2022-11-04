@@ -1,7 +1,7 @@
 #include "Boid.h"
 
 
-#define NEARBY_DISTANCE		100.0f	// how far boids can see
+#define NEARBY_DISTANCE		50.0f	// how far boids can see
 
 Boid::Boid(bool isPredator)
 {
@@ -16,7 +16,7 @@ Boid::Boid(bool isPredator)
 	{
 		m_material.Material.Ambient = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		m_speed = 1.21f;
+		m_speed = 1.15f;
 		m_stamina = 1.0f;
 		m_fov = 1.0f;
 		m_range = 1.0f;
@@ -28,11 +28,11 @@ Boid::Boid(bool isPredator)
 		//m_material.Material.SpecularPower = 32.0f;
 		//m_material.Material.UseTexture = false;
 
-		// Generate stat multipliers in range 0.8f - 1.2f
-		m_speed = 0.8f + (float)(rand() % 40) / 100.0f;
-		m_stamina = 0.8f + (float)(rand() % 40) / 100.0f;
-		m_fov = 0.8f + (float)(rand() % 40) / 100.0f;
-		m_range = 0.8f + (float)(rand() % 40) / 100.0f;
+		// Generate stat multipliers in range 0.9f - 1.1f
+		m_speed = 0.9f + (float)(rand() % 20) / 100.0f;
+		m_stamina = 0.9f + (float)(rand() % 20) / 100.0f;
+		m_fov = 0.9f + (float)(rand() % 20) / 100.0f;
+		m_range = 0.9f + (float)(rand() % 20) / 100.0f;
 	}
 }
 
@@ -126,7 +126,6 @@ void Boid::update(float t, vecBoid* boidList)
 		// create a list of nearby boids
 		vecBoid nearBoids = nearbyBoids(boidList);
 
-		// NOTE these functions should always return a normalised vector
 		XMFLOAT3  vSeparation = calculateSeparationVector(&nearBoids);
 		XMFLOAT3  vAlignment = calculateAlignmentVector(&nearBoids);
 		XMFLOAT3  vCohesion = calculateCohesionVector(&nearBoids);
@@ -190,7 +189,12 @@ XMFLOAT3 Boid::calculateSeparationVector(vecBoid* boidList)
 	}
 
 	if (nearest != nullptr) {
-		return normaliseFloat3(directionNearestStored);
+		directionNearestStored = normaliseFloat3(directionNearestStored);
+		if (nearestDistance < 4.0f)
+			directionNearestStored = multiplyFloat3(directionNearestStored, 2.0f);
+		else if (nearestDistance > 20.0f)
+			directionNearestStored = divideFloat3(directionNearestStored, 2.0f);
+		return directionNearestStored;
 	}
 
 	return nearby;
@@ -224,6 +228,12 @@ XMFLOAT3 Boid::calculateCohesionVector(vecBoid* boidList)
 
 	nearby = divideFloat3(nearby, (float)boidList->size());
 	nearby = subtractFloat3(nearby, m_position);
+
+	if (magnitudeFloat3(nearby) > NEARBY_DISTANCE * m_range / 2.0f)
+	{
+		nearby = normaliseFloat3(nearby);
+		return multiplyFloat3(nearby, 2.0f);
+	}
 
 	return normaliseFloat3(nearby); // nearby is the direction to where the other drawables are
 }
@@ -329,6 +339,8 @@ vecBoid Boid::nearbyBoids(vecBoid* boidList)
 	if (boidList->size() == 0)
 		return nearBoids;
 
+	XMFLOAT3 dirNormal = normaliseFloat3(m_direction);
+
 	for (Boid* boid : *boidList) {
 		// ignore self
 		if (boid == this || boid->isPredator())
@@ -350,10 +362,13 @@ vecBoid Boid::nearbyBoids(vecBoid* boidList)
 		// -------------------------------
 
 		float l = magnitudeFloat3(vDiff);
+		XMFLOAT3 vDiffNormal = normaliseFloat3(vDiff);
 
 
 		if (l < NEARBY_DISTANCE * m_range) {
-			nearBoids.push_back(boid);
+			float dot = vDiffNormal.x * dirNormal.x + vDiffNormal.y * dirNormal.y + vDiffNormal.z * dirNormal.z;
+			if (dot > -0.5f - (m_fov - 1.0f))
+				nearBoids.push_back(boid);
 		}
 	}
 

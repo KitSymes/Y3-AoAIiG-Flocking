@@ -1,14 +1,17 @@
 #include "Fish.h"
 
+// Generate stat multipliers in range 0.9f - 1.1f
+#define MIN 0.9f
+#define VARIATION 20
+
 Fish::Fish()
 {
 	m_material.Material.Ambient = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-	// Generate stat multipliers in range 0.9f - 1.1f
-	m_speed = 0.9f + (float)(rand() % 20) / 100.0f;
-	m_stamina = 0.9f + (float)(rand() % 20) / 100.0f;
-	m_fov = 0.9f + (float)(rand() % 20) / 100.0f;
-	m_range = 0.9f + (float)(rand() % 20) / 100.0f;
+	m_speed = MIN + (float)(rand() % VARIATION) / 100.0f;
+	m_stamina = MIN + (float)(rand() % VARIATION) / 100.0f;
+	m_fov = MIN + (float)(rand() % VARIATION) / 100.0f;
+	m_range = MIN + (float)(rand() % VARIATION) / 100.0f;
 }
 
 void Fish::update(float t, vecBoid* boidList)

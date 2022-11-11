@@ -113,10 +113,10 @@ XMFLOAT3 Boid::calculateCohesionVector(vecBoid* boidList)
 	nearby = divideFloat3(nearby, (float)boidList->size());
 	nearby = subtractFloat3(nearby, m_position);
 
-	if (magnitudeFloat3(nearby) > NEARBY_DISTANCE * m_range / 3.0f)
+	if (magnitudeFloat3(nearby) > NEARBY_DISTANCE * m_range / 4.0f)
 	{
 		nearby = normaliseFloat3(nearby);
-		return multiplyFloat3(nearby, 2.0f);
+		return multiplyFloat3(nearby, 3.0f);
 	}
 
 	return normaliseFloat3(nearby);

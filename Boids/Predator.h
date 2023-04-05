@@ -4,7 +4,7 @@ class Predator :
     public Boid
 {
 public:
-	Predator();
+	Predator(int id);
 
 	void update(float t, vecBoid* boidList);
 

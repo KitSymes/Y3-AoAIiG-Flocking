@@ -1,13 +1,15 @@
 #pragma once
 #include "DrawableGameObject.h"
 #include <string>
+#include <fstream>
+#include <chrono>
 
 #define NEARBY_DISTANCE		60.0f	// how far boids can see
 class Boid :
 	public DrawableGameObject
 {
 public:
-	Boid();
+	Boid(int id);
 	~Boid();
 
 	XMFLOAT3*							getDirection() { return &m_direction; }
@@ -36,6 +38,8 @@ protected:
 	XMFLOAT3							m_direction;
 	bool								m_dead;
 	float								m_speed, m_stamina, m_fov, m_range;
+	int									m_id;
+	std::chrono::steady_clock::time_point m_birth;
 	//unsigned int*						m_nearbyDrawables;
 };
 

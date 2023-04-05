@@ -79,10 +79,10 @@ vecBoid					g_Boids;
 #define PREDATOR_COUNT 1
 #define START_SQUARE 150
 
-void placeFish()
+void placeFish(int id)
 {
 	HRESULT hr;
-	Boid* fish = new Fish();
+	Boid* fish = new Fish(id);
 	hr = fish->initMesh(g_pd3dDevice, g_pImmediateContext);
 	if (FAILED(hr))
 		return;
@@ -95,10 +95,10 @@ void placeFish()
 
 }
 
-void placePredator()
+void placePredator(int id)
 {
 	HRESULT hr;
-	Boid* fish = new Predator();
+	Boid* fish = new Predator(id);
 	hr = fish->initMesh(g_pd3dDevice, g_pImmediateContext);
 	if (FAILED(hr))
 		return;
@@ -521,10 +521,10 @@ HRESULT		InitMesh()
 		return hr;
 
     for (int i = 0; i < FISH_COUNT; i++)
-	    placeFish();
+	    placeFish(i);
 
     for (int i = 0; i < PREDATOR_COUNT; i++)
-        placePredator();
+        placePredator(i);
 
 	return hr;
 }

@@ -4,7 +4,7 @@ class Fish :
     public Boid
 {
 public:
-	Fish();
+	Fish(int id);
 
 	void update(float t, vecBoid* boidList);
 protected:

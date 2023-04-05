@@ -2,13 +2,16 @@
 
 
 
-Boid::Boid()
+Boid::Boid(int id)
 {
 	m_position = XMFLOAT3(0, 0, 0);
 	//m_direction = XMFLOAT3(0, 1, 0);
 	createRandomDirection();
 	setScale(1);
 	m_dead = false;
+	m_id = id;
+
+	m_birth = std::chrono::high_resolution_clock::now();
 }
 
 Boid::~Boid()
@@ -40,6 +43,19 @@ void Boid::update(float t, vecBoid* boidList)
 
 void Boid::kill()
 {
+	std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
+	std::ofstream o("export.csv", ios::out | ios::app);
+
+	o << m_id << ",";
+	o << m_speed << ",";
+	o << m_stamina << ",";
+	o << m_fov << ",";
+	o << m_range << ",";
+	o << std::chrono::duration<double, std::milli>(end - m_birth).count() << ",";
+	o << std::endl;
+
+	o.close();
+
 	m_dead = true;
 }
 

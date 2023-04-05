@@ -1,6 +1,6 @@
 #include "Predator.h"
 
-Predator::Predator()
+Predator::Predator(int id) : Boid(id)
 {
 	m_material.Material.Ambient = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 

@@ -1,10 +1,10 @@
 #include "Fish.h"
 
-// Generate stat multipliers in range 0.9f - 1.1f
+// Generate stat multipliers in range 0.9f - 1.1f (Variation = (max - min + 1) * 100)
 #define MIN 0.9f
-#define VARIATION 20
+#define VARIATION 21
 
-Fish::Fish()
+Fish::Fish(int id) : Boid(id)
 {
 	m_material.Material.Ambient = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
